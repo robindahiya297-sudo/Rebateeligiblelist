@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ottawa New Build Master Tracker</title>
+<meta name="description" content="Direct access to active quick-delivery new construction inventory & floorplans across Ottawa." />
+
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- PapaParse -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        },
+        colors: {
+          navy: {
+            900: '#0b1120',
+            800: '#0f172a',
+            700: '#1e293b',
+          },
+        },
+      },
+    },
+  };
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+<style>
+  html { scroll-behavior: smooth; }
+  body { -webkit-font-smoothing: antialiased; }
+  /* Subtle card entrance */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .card-in { animation: fadeUp .4s ease both; }
+  /* Custom scrollbar for a premium feel */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: #0f172a; }
+  ::-webkit-scrollbar-thumb { background: #334155; border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: #475569; }
+</style>
+</head>
+
+<body class="bg-slate-100 text-slate-900 font-sans">
+
+  <!-- ================= HEADER ================= -->
+  <header class="relative overflow-hidden bg-gradient-to-br from-navy-900 via-navy-800 to-indigo-900">
+    <!-- Decorative glows -->
+    <div class="pointer-events-none absolute -top-24 -right-24 h-72 w-72 rounded-full bg-indigo-500/20 blur-3xl"></div>
+    <div class="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl"></div>
+
+    <div class="relative mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-16">
+      <div class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-indigo-200 backdrop-blur">
+        <span class="h-2 w-2 animate-pulse rounded-full bg-emerald-400"></span>
+        Live Inventory Feed
+      </div>
+
+      <h1 class="mt-5 text-3xl font-black leading-tight tracking-tight text-white sm:text-5xl">
+        Ottawa New Build <span class="bg-gradient-to-r from-indigo-300 to-blue-300 bg-clip-text text-transparent">Master Tracker</span>
+      </h1>
+      <p class="mt-3 max-w-2xl text-base text-slate-300 sm:text-lg">
+        Direct Access to Active Quick-Delivery Inventory &amp; Floorplans
+      </p>
+
+      <!-- Live stat badges -->
+      <div class="mt-7 flex flex-wrap gap-3">
+        <div class="rounded-xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur">
+          <div id="statTotal" class="text-2xl font-extrabold text-white">—</div>
+          <div class="text-xs uppercase tracking-wider text-slate-400">Active Homes</div>
+        </div>
+        <div class="rounded-xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur">
+          <div id="statBuilders" class="text-2xl font-extrabold text-white">—</div>
+          <div class="text-xs uppercase tracking-wider text-slate-400">Builders</div>
+        </div>
+        <div class="rounded-xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur">
+          <div id="statHoods" class="text-2xl font-extrabold text-white">—</div>
+          <div class="text-xs uppercase tracking-wider text-slate-400">Neighborhoods</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= VIP CALLOUT BANNER ================= -->
+  <section class="mx-auto max-w-7xl px-5 sm:px-8">
+    <div class="-mt-6 rounded-2xl border border-amber-300/60 bg-gradient-to-r from-amber-50 to-yellow-50 p-5 shadow-xl shadow-amber-900/5 sm:-mt-8 sm:p-6">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex items-start gap-3">
+          <div class="mt-0.5 text-2xl">⚠️</div>
+          <p class="text-sm leading-relaxed text-amber-900 sm:text-[15px]">
+            <span class="font-bold">Note:</span> This portal displays
+            <span class="font-semibold">Active Move-In Inventory Only.</span>
+            Builders keep upcoming pre-construction lot releases and VIP pricing hidden from public MLS.
+            Want the unreleased off-market floorplans?
+            <span class="font-semibold">Contact us directly.</span>
+          </p>
+        </div>
+        <a
+          href="mailto:robindahiya297@gmail.com?subject=Off-Market%20VIP%20Floorplans%20Request&body=Hi%2C%20I%27d%20like%20access%20to%20the%20unreleased%20pre-construction%20lot%20releases%20and%20VIP%20pricing%20in%20Ottawa."
+          class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-orange-500/30 transition hover:from-amber-600 hover:to-orange-600 active:scale-[.98]"
+        >
+          🔓 Get VIP Off-Market Access
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FILTER BAR (sticky) ================= -->
+  <div class="sticky top-0 z-30 mt-6 border-y border-slate-200 bg-white/90 backdrop-blur-md shadow-sm">
+    <div class="mx-auto max-w-7xl px-5 py-4 sm:px-8">
+      <!-- Keyword search -->
+      <div class="relative">
+        <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
+          </svg>
+        </span>
+        <input
+          id="searchInput"
+          type="text"
+          placeholder="Search by model, plan, or specs (e.g. Townhome, 4 bed)…"
+          class="w-full rounded-xl border border-slate-300 bg-slate-50 py-3 pl-10 pr-4 text-sm font-medium text-slate-800 placeholder-slate-400 outline-none transition focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200"
+        />
+      </div>
+
+      <!-- Dropdown filters -->
+      <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <!-- Location -->
+        <select
+          id="hoodSelect"
+          class="w-full appearance-none rounded-xl border border-slate-300 bg-slate-50 bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 24 24%22 stroke=%22%2364748b%22 stroke-width=%222%22><path stroke-linecap=%22round%22 stroke-linejoin=%22round%22 d=%22M19 9l-7 7-7-7%22/></svg>')] bg-[length:18px] bg-[right_0.6rem_center] bg-no-repeat py-3 pl-4 pr-9 text-sm font-medium text-slate-800 outline-none transition focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200"
+        >
+          <option value="">All Locations</option>
+        </select>
+
+        <!-- Type -->
+        <select
+          id="typeSelect"
+          class="w-full appearance-none rounded-xl border border-slate-300 bg-slate-50 bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 24 24%22 stroke=%22%2364748b%22 stroke-width=%222%22><path stroke-linecap=%22round%22 stroke-linejoin=%22round%22 d=%22M19 9l-7 7-7-7%22/></svg>')] bg-[length:18px] bg-[right_0.6rem_center] bg-no-repeat py-3 pl-4 pr-9 text-sm font-medium text-slate-800 outline-none transition focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200"
+        >
+          <option value="">All Types</option>
+        </select>
+
+        <!-- Beds -->
+        <select
+          id="bedsSelect"
+          class="w-full appearance-none rounded-xl border border-slate-300 bg-slate-50 bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 24 24%22 stroke=%22%2364748b%22 stroke-width=%222%22><path stroke-linecap=%22round%22 stroke-linejoin=%22round%22 d=%22M19 9l-7 7-7-7%22/></svg>')] bg-[length:18px] bg-[right_0.6rem_center] bg-no-repeat py-3 pl-4 pr-9 text-sm font-medium text-slate-800 outline-none transition focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200"
+        >
+          <option value="">Any Beds</option>
+          <option value="1">1+ Beds</option>
+          <option value="2">2+ Beds</option>
+          <option value="3">3+ Beds</option>
+          <option value="4">4+ Beds</option>
+          <option value="5">5+ Beds</option>
+        </select>
+
+        <!-- Baths -->
+        <select
+          id="bathsSelect"
+          class="w-full appearance-none rounded-xl border border-slate-300 bg-slate-50 bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 24 24%22 stroke=%22%2364748b%22 stroke-width=%222%22><path stroke-linecap=%22round%22 stroke-linejoin=%22round%22 d=%22M19 9l-7 7-7-7%22/></svg>')] bg-[length:18px] bg-[right_0.6rem_center] bg-no-repeat py-3 pl-4 pr-9 text-sm font-medium text-slate-800 outline-none transition focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200"
+        >
+          <option value="">Any Baths</option>
+          <option value="1">1+ Baths</option>
+          <option value="2">2+ Baths</option>
+          <option value="3">3+ Baths</option>
+          <option value="4">4+ Baths</option>
+        </select>
+
+        <!-- Price -->
+        <select
+          id="priceSelect"
+          class="col-span-2 w-full appearance-none rounded-xl border border-slate-300 bg-slate-50 bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 24 24%22 stroke=%22%2364748b%22 stroke-width=%222%22><path stroke-linecap=%22round%22 stroke-linejoin=%22round%22 d=%22M19 9l-7 7-7-7%22/></svg>')] bg-[length:18px] bg-[right_0.6rem_center] bg-no-repeat py-3 pl-4 pr-9 text-sm font-medium text-slate-800 outline-none transition focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 sm:col-span-1"
+        >
+          <option value="">Any Price</option>
+          <option value="0-600000">Under $600K</option>
+          <option value="600000-800000">$600K – $800K</option>
+          <option value="800000-1000000">$800K – $1M</option>
+          <option value="1000000-1250000">$1M – $1.25M</option>
+          <option value="1250000-999999999">$1.25M+</option>
+        </select>
+      </div>
+
+      <!-- Result count + reset -->
+      <div class="mt-3 flex items-center justify-between">
+        <p id="resultCount" class="text-xs font-semibold uppercase tracking-wider text-slate-500">Loading…</p>
+        <button id="resetBtn" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline">
+          Reset filters
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= RESULTS GRID ================= -->
+  <main class="mx-auto max-w-7xl px-5 py-8 sm:px-8">
+    <div id="grid" class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"></div>
+
+    <!-- Loading skeleton / states injected via JS -->
+    <div id="emptyState" class="hidden py-20 text-center">
+      <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-200 text-3xl">🔍</div>
+      <p class="text-lg font-bold text-slate-700">No models match your criteria</p>
+      <p class="mt-1 text-sm text-slate-500">Try adjusting your search or clearing a filter.</p>
+      <button onclick="document.getElementById('resetBtn').click()" class="mt-5 inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700">
+        Clear all filters
+      </button>
+    </div>
+
+    <div id="loadingState" class="py-20 text-center">
+      <div class="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-300 border-t-indigo-600"></div>
+      <p class="mt-4 text-sm font-medium text-slate-500">Loading live inventory…</p>
+    </div>
+
+    <div id="errorState" class="hidden py-20 text-center">
+      <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 text-3xl">⚠️</div>
+      <p class="text-lg font-bold text-slate-700">We couldn't load the inventory feed</p>
+      <p id="errorDetail" class="mt-1 text-sm text-slate-500">Please refresh the page in a moment.</p>
+    </div>
+  </main>
+
+  <!-- ================= FOOTER CTA ================= -->
+  <footer class="mt-8 bg-gradient-to-br from-navy-900 via-navy-800 to-indigo-900">
+    <div class="mx-auto max-w-7xl px-5 py-12 text-center sm:px-8">
+      <h2 class="text-2xl font-black text-white sm:text-3xl">Ready to tour a home or unlock VIP pricing?</h2>
+      <p class="mx-auto mt-2 max-w-xl text-slate-300">
+        Get first access to pre-construction lot releases before they hit MLS.
+      </p>
+      <a
+        href="mailto:robindahiya297@gmail.com?subject=Ottawa%20New%20Build%20Inquiry"
+        class="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-white px-7 py-3.5 text-sm font-bold text-navy-900 shadow-lg transition hover:bg-slate-100 active:scale-[.98]"
+      >
+        📩 Contact Us Directly
+      </a>
+      <p class="mt-8 text-xs text-slate-500">
+        © <span id="year"></span> Ottawa New Build Master Tracker · Inventory updates live. Prices &amp; availability subject to change without notice.
+      </p>
+    </div>
+  </footer>
+
+  <!-- ================= SCRIPT ================= -->
+  <script>
+    // ============================================================
+    // 1. SETUP — paste your published CSV link below if it changes
+    // ============================================================
+    const sheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRzNTfk7KZ3U6h4ML7aINdyauANhgVAKTABsVYxj-XY9Tn-so0Lnj2FIKnpFNxGG9A5yJNHwfLDidul/pub?gid=0&single=true&output=csv";
+
+    // ============================================================
+    // 2. STATE
+    // ============================================================
+    let allHomes = [];
+
+    const el = {
+      grid: document.getElementById('grid'),
+      search: document.getElementById('searchInput'),
+      hood: document.getElementById('hoodSelect'),
+      type: document.getElementById('typeSelect'),
+      beds: document.getElementById('bedsSelect'),
+      baths: document.getElementById('bathsSelect'),
+      price: document.getElementById('priceSelect'),
+      resultCount: document.getElementById('resultCount'),
+      resetBtn: document.getElementById('resetBtn'),
+      empty: document.getElementById('emptyState'),
+      loading: document.getElementById('loadingState'),
+      error: document.getElementById('errorState'),
+      errorDetail: document.getElementById('errorDetail'),
+      statTotal: document.getElementById('statTotal'),
+      statBuilders: document.getElementById('statBuilders'),
+      statHoods: document.getElementById('statHoods'),
+    };
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Small helper to safely read a field regardless of header spacing/case
+    function pick(row, keys) {
+      for (const k of Object.keys(row)) {
+        const norm = k.trim().toLowerCase();
+        if (keys.includes(norm)) return (row[k] || '').toString().trim();
+      }
+      return '';
+    }
+
+    function normalizeRow(row) {
+      const title = pick(row, ['title / plan name', 'title/plan name', 'title', 'plan name', 'plan']);
+      const specs = pick(row, ['specs', 'spec']);
+      const price = pick(row, ['price']);
+      const hay = `${title} ${specs}`;
+      return {
+        title,
+        builder: pick(row, ['builder']),
+        price,
+        neighborhood: pick(row, ['neighborhood', 'neighbourhood']),
+        specs,
+        link: pick(row, ['link', 'url']),
+        // Derived fields for filtering
+        priceNum: parsePrice(price),
+        bedsNum: parseBeds(specs),
+        bathsNum: parseBaths(specs),
+        homeType: parseType(hay),
+      };
+    }
+
+    // Convert a price string ($850,000 / $1.2M / 1250k) to a number
+    function parsePrice(str) {
+      if (!str) return null;
+      let s = str.toLowerCase().replace(/[,$\s]/g, '');
+      let mult = 1;
+      if (/m\b|million/.test(s)) { mult = 1e6; s = s.replace(/m\b|million/, ''); }
+      else if (/k\b/.test(s)) { mult = 1e3; s = s.replace(/k\b/, ''); }
+      const n = parseFloat(s.replace(/[^0-9.]/g, ''));
+      return isNaN(n) ? null : n * mult;
+    }
+
+    // Pull bed / bath counts out of a free-text specs string
+    function parseBeds(specs) {
+      const m = (specs || '').match(/(\d+(?:\.\d+)?)\s*(?:bed(?:room)?s?|bd|br)\b/i);
+      return m ? parseFloat(m[1]) : null;
+    }
+    function parseBaths(specs) {
+      const m = (specs || '').match(/(\d+(?:\.\d+)?)\s*(?:bath(?:room)?s?|ba)\b/i);
+      return m ? parseFloat(m[1]) : null;
+    }
+
+    // Classify home type from title + specs keywords
+    function parseType(text) {
+      const t = (text || '').toLowerCase();
+      if (/town/.test(t)) return 'Townhome';
+      if (/semi/.test(t)) return 'Semi-Detached';
+      if (/bungalow/.test(t)) return 'Bungalow';
+      if (/duplex/.test(t)) return 'Duplex';
+      if (/condo|apartment|\bflat\b/.test(t)) return 'Condo';
+      if (/detached|single/.test(t)) return 'Single Detached';
+      return '';
+    }
+
+    function escapeHtml(str) {
+      return (str || '').replace(/[&<>"']/g, (m) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[m]));
+    }
+
+    // Give each builder a consistent badge color
+    function builderColor(name) {
+      const palette = [
+        'bg-indigo-100 text-indigo-700',
+        'bg-blue-100 text-blue-700',
+        'bg-purple-100 text-purple-700',
+        'bg-rose-100 text-rose-700',
+        'bg-teal-100 text-teal-700',
+        'bg-amber-100 text-amber-700',
+        'bg-cyan-100 text-cyan-700',
+        'bg-fuchsia-100 text-fuchsia-700',
+      ];
+      let hash = 0;
+      for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
+      return palette[hash % palette.length];
+    }
+
+    // ============================================================
+    // 3. FETCH DATA WITH PAPAPARSE
+    // ============================================================
+    function loadData() {
+      Papa.parse(sheetCsvUrl, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          const rows = (results.data || [])
+            .map(normalizeRow)
+            .filter((r) => r.title || r.builder || r.price); // drop blank rows
+
+          if (!rows.length) {
+            showError('The sheet returned no rows. Check that it is published to the web as CSV.');
+            return;
+          }
+
+          allHomes = rows;
+          el.loading.classList.add('hidden');
+          populateFilters();
+          updateStats();
+          render();
+        },
+        error: (err) => {
+          console.error(err);
+          showError('Network or permissions error while fetching the CSV.');
+        },
+      });
+    }
+
+    function showError(msg) {
+      el.loading.classList.add('hidden');
+      el.error.classList.remove('hidden');
+      el.errorDetail.textContent = msg;
+      el.resultCount.textContent = 'Error';
+    }
+
+    // ============================================================
+    // 4. POPULATE FILTER DROPDOWNS (unique values)
+    // ============================================================
+    function uniqueSorted(field) {
+      return [...new Set(
+        allHomes.map((h) => h[field]).filter(Boolean)
+      )].sort((a, b) => a.localeCompare(b));
+    }
+
+    function populateFilters() {
+      uniqueSorted('neighborhood').forEach((v) => {
+        const o = document.createElement('option');
+        o.value = v; o.textContent = v;
+        el.hood.appendChild(o);
+      });
+      uniqueSorted('homeType').forEach((v) => {
+        const o = document.createElement('option');
+        o.value = v; o.textContent = v;
+        el.type.appendChild(o);
+      });
+    }
+
+    function updateStats() {
+      el.statTotal.textContent = allHomes.length;
+      el.statBuilders.textContent = uniqueSorted('builder').length;
+      el.statHoods.textContent = uniqueSorted('neighborhood').length;
+    }
+
+    // ============================================================
+    // 5. FILTER + RENDER
+    // ============================================================
+    function getFiltered() {
+      const q = el.search.value.trim().toLowerCase();
+      const hood = el.hood.value;
+      const type = el.type.value;
+      const minBeds = parseFloat(el.beds.value) || 0;
+      const minBaths = parseFloat(el.baths.value) || 0;
+      const priceRange = el.price.value; // "min-max" or ""
+
+      let priceMin = 0, priceMax = Infinity;
+      if (priceRange) {
+        const [lo, hi] = priceRange.split('-').map(Number);
+        priceMin = lo; priceMax = hi;
+      }
+
+      return allHomes.filter((h) => {
+        const matchesKeyword = !q ||
+          [h.title, h.specs, h.builder, h.neighborhood, h.price]
+            .join(' ').toLowerCase().includes(q);
+        const matchesHood = !hood || h.neighborhood === hood;
+        const matchesType = !type || h.homeType === type;
+        const matchesBeds = !minBeds || (h.bedsNum != null && h.bedsNum >= minBeds);
+        const matchesBaths = !minBaths || (h.bathsNum != null && h.bathsNum >= minBaths);
+        const matchesPrice = !priceRange ||
+          (h.priceNum != null && h.priceNum >= priceMin && h.priceNum <= priceMax);
+        return matchesKeyword && matchesHood && matchesType &&
+               matchesBeds && matchesBaths && matchesPrice;
+      });
+    }
+
+    function cardHtml(h, i) {
+      const builder = escapeHtml(h.builder) || 'Builder';
+      const title = escapeHtml(h.title) || 'New Home';
+      const price = escapeHtml(h.price) || 'Contact for pricing';
+      const hood = escapeHtml(h.neighborhood) || 'Ottawa';
+      const specs = escapeHtml(h.specs);
+      const link = h.link ? escapeHtml(h.link) : '';
+      const badgeClass = builderColor(builder);
+
+      const cta = link
+        ? `<a href="${link}" target="_blank" rel="noopener noreferrer"
+              class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 px-4 py-3 text-sm font-bold text-white shadow-md shadow-indigo-500/20 transition hover:from-indigo-700 hover:to-blue-700 active:scale-[.98]">
+              View Floorplans &amp; Pricing →
+            </a>`
+        : `<button disabled
+              class="mt-4 inline-flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-slate-200 px-4 py-3 text-sm font-bold text-slate-400">
+              Link Coming Soon
+            </button>`;
+
+      return `
+        <article class="card-in flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl" style="animation-delay:${Math.min(i * 40, 400)}ms">
+          <!-- Top accent bar -->
+          <div class="h-1.5 w-full bg-gradient-to-r from-indigo-500 via-blue-500 to-indigo-500"></div>
+
+          <div class="flex flex-1 flex-col p-5">
+            <!-- Builder badge -->
+            <div class="flex items-center justify-between gap-2">
+              <span class="inline-flex items-center rounded-full ${badgeClass} px-3 py-1 text-xs font-bold uppercase tracking-wide">
+                🏗️ ${builder}
+              </span>
+            </div>
+
+            <!-- Title -->
+            <h3 class="mt-3 text-lg font-extrabold leading-snug text-slate-900">${title}</h3>
+
+            <!-- Location -->
+            <div class="mt-1.5 flex items-center gap-1.5 text-sm font-medium text-slate-500">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              ${hood}
+            </div>
+
+            <!-- Price tag -->
+            <div class="mt-4">
+              <span class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-2 text-lg font-black text-emerald-700 ring-1 ring-emerald-200">
+                ${price.startsWith('$') || !/\d/.test(price) ? '' : '$'}${price}
+              </span>
+            </div>
+
+            <!-- Specs box -->
+            ${specs ? `
+            <div class="mt-4 rounded-xl bg-slate-50 p-3 ring-1 ring-slate-100">
+              <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Specs</div>
+              <p class="mt-1 text-sm font-medium text-slate-700">${specs}</p>
+            </div>` : ''}
+
+            <!-- CTA pinned to bottom -->
+            <div class="mt-auto">${cta}</div>
+          </div>
+        </article>`;
+    }
+
+    function render() {
+      const filtered = getFiltered();
+
+      // Count text
+      el.resultCount.textContent =
+        `${filtered.length} ${filtered.length === 1 ? 'home' : 'homes'} shown`;
+
+      if (!filtered.length) {
+        el.grid.innerHTML = '';
+        el.empty.classList.remove('hidden');
+        return;
+      }
+
+      el.empty.classList.add('hidden');
+      el.grid.innerHTML = filtered.map((h, i) => cardHtml(h, i)).join('');
+    }
+
+    // ============================================================
+    // 6. EVENTS
+    // ============================================================
+    el.search.addEventListener('input', render);
+    [el.hood, el.type, el.beds, el.baths, el.price].forEach((s) =>
+      s.addEventListener('change', render));
+    el.resetBtn.addEventListener('click', () => {
+      el.search.value = '';
+      el.hood.value = '';
+      el.type.value = '';
+      el.beds.value = '';
+      el.baths.value = '';
+      el.price.value = '';
+      render();
+    });
+
+    // Go!
+    loadData();
+  </script>
+</body>
+</html>
